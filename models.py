@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, UniqueConstraint
-from .database import Base
+from database import Base
 
 
 class Event(Base):
@@ -21,3 +21,10 @@ class Booking(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    role = Column(String, nullable=False, index=True)

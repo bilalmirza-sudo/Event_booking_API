@@ -1,7 +1,29 @@
-from fastapi import Header, HTTPException
+from fastapi import Depends, Header, HTTPException
+from sqlalchemy.orm import Session
+
+from database import get_db
+from models import User
 
 
-def verify_admin(x_role: str = Header(...)):
-    # Client must send:  X-Role: admin
-    if x_role.lower() != "admin":
-        raise HTTPException(status_code=403, detail="Only admin can perform this action")
+def require_user_by_user_id(user_id: int, db: Session) -> User:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+def require_admin_by_user_id(user_id: int, db: Session) -> User:
+    user = require_user_by_user_id(user_id=user_id, db=db)
+    if user.role.lower() != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to perform this action",
+        )
+    return user
+
+
+def verify_admin(
+    user_id: int = Header(..., alias="X-User-Id"),
+    db: Session = Depends(get_db),
+):
+    require_admin_by_user_id(user_id=user_id, db=db)

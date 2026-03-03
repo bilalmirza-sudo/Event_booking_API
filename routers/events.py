@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..dependencies import verify_admin
-from ..models import Booking, Event
-from ..schemas import EventCreate, EventResponse, EventStatsResponse
+from database import get_db
+from dependencies import require_admin_by_user_id, verify_admin
+from models import Booking, Event
+from schemas import EventCreate, EventResponse, EventStatsResponse
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -22,8 +22,10 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
     return event
 
 
-@router.post("/", response_model=EventResponse, dependencies=[Depends(verify_admin)])
+@router.post("/", response_model=EventResponse)
 def create_event(event: EventCreate, db: Session = Depends(get_db)):
+    require_admin_by_user_id(user_id=event.user_id, db=db)
+
     existing = (
         db.query(Event)
         .filter(Event.name == event.name, Event.event_date == event.event_date)

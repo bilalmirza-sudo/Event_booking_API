@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 
 class EventCreate(BaseModel):
+    user_id: int
     name: str
     available_tickets: int
     event_date: date
@@ -35,3 +36,7 @@ class BookingResponse(BaseModel):
 class EventStatsResponse(BaseModel):
     event_id: int
     booked_tickets: int
+
+class UserResponse(BaseModel):
+    id: int
+    role: str

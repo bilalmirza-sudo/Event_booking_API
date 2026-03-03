@@ -1,15 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models import Booking, Event
-from ..schemas import BookingCreate, BookingResponse
+from database import get_db
+from dependencies import require_user_by_user_id
+from models import Booking, Event
+from schemas import BookingCreate, BookingResponse
 
 router = APIRouter(tags=["bookings"])
 
 
 @router.post("/bookings", response_model=BookingResponse)
 def book_ticket(payload: BookingCreate, db: Session = Depends(get_db)):
+    require_user_by_user_id(user_id=payload.user_id, db=db)
+
     event = db.query(Event).filter(Event.id == payload.event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -29,4 +32,5 @@ def book_ticket(payload: BookingCreate, db: Session = Depends(get_db)):
 
 @router.get("/users/{user_id}/bookings", response_model=list[BookingResponse])
 def list_user_bookings(user_id: int, db: Session = Depends(get_db)):
+    require_user_by_user_id(user_id=user_id, db=db)
     return db.query(Booking).filter(Booking.user_id == user_id).all()

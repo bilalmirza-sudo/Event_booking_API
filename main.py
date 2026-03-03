@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
-from Event_booking_API.database import Base, engine
-from Event_booking_API.routers import bookings, events
+from database import Base, engine
+from routers import bookings, events
 
 app = FastAPI(title="Bilal Event Booking System")
 
