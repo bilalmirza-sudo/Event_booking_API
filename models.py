@@ -3,6 +3,7 @@ from sqlalchemy import Column, Date, ForeignKey, Integer, String, UniqueConstrai
 from database import Base
 
 
+# Stores event details and remaining ticket inventory.
 class Event(Base):
     __tablename__ = "events"
 
@@ -11,11 +12,13 @@ class Event(Base):
     available_tickets = Column(Integer, nullable=False)
     event_date = Column(Date, nullable=False)
 
+    # Prevents duplicate events with the same name on the same date.
     __table_args__ = (
         UniqueConstraint("name", "event_date", name="unique_event_name_date"),
     )
 
 
+# Stores ticket bookings by user and event.
 class Booking(Base):
     __tablename__ = "bookings"
 
@@ -24,6 +27,7 @@ class Booking(Base):
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
 
 
+# User record used for role-based checks.
 class User(Base):
     __tablename__ = "users"
 

@@ -23,19 +23,19 @@ def book_ticket(payload: BookingCreate, db: Session = Depends(get_db)):
 
     booking = Booking(user_id=payload.user_id, event_id=payload.event_id)
 
-    # create booking + decrement tickets
-    # TODO: Make this operation race-safe (transaction/locking) to avoid overselling last tickets under concurrent requests.
+    # create booking with decrementing tickets
+    # TODO: Avoid overselling last tickets under concurrent requests.
     db.add(booking)
     event.available_tickets -= 1
     db.commit()
     db.refresh(booking)
     return booking
 
-
+# User can see the booking details
 @router.get("/users/{user_id}/bookings", response_model=list[BookingResponse])
 def list_user_bookings(user_id: int, db: Session = Depends(get_db)):
     require_user_by_user_id(user_id=user_id, db=db)
-    # TODO: Add pagination (e.g., limit/offset) for scalability.
+    # TODO: Add pagination for scalability.
     bookings = db.query(Booking).filter(Booking.user_id == user_id).all()
     if not bookings:
         raise HTTPException(status_code=404, detail="No bookings found for this user")
