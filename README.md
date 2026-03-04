@@ -12,7 +12,7 @@ RESTful service to manage events and book tickets.
 1. Create and activate a virtual environment.
 2. Install dependencies:
    - `pip install fastapi uvicorn sqlalchemy`
-3. Start the app:
+3. Start the app (within the project root folder):
    - `uvicorn main:app --reload`
 4. Open:
    - API: `http://127.0.0.1:8000`
@@ -21,13 +21,15 @@ RESTful service to manage events and book tickets.
 ## Database
 - The app uses SQLite file: `database.db`
 - Tables are created automatically on startup.
+- User table is created that contains roles
+- roles are :- admin and user, this is done so that certain functionalities can only be performed by admin
 
 ## API Endpoints
 
 ### User capabilities
 - `GET /events/` -> list events
 - `POST /bookings` -> book a ticket for an event
-- `GET /users/{user_id}/bookings` -> list booked tickets for a user
+- `GET /users/{user_id}/bookings` -> list booked tickets for a user for current and upcoming events
 
 ### Owner/admin capabilities
 - `POST /events/` -> create event
