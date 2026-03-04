@@ -1,8 +1,10 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from dependencies import require_admin_by_user_id, verify_admin
+from dependencies import require_admin_by_user_id
 from models import Booking, Event
 from schemas import EventCreate, EventResponse, EventStatsResponse
 
@@ -11,7 +13,15 @@ router = APIRouter(prefix="/events", tags=["events"])
 
 @router.get("/", response_model=list[EventResponse])
 def list_events(db: Session = Depends(get_db)):
-    return db.query(Event).all()
+    # TODO: Add pagination (e.g., limit/offset) for scalability.
+    events = (
+        db.query(Event)
+        .filter(Event.available_tickets > 0, Event.event_date >= date.today())
+        .all()
+    )
+    if not events:
+        raise HTTPException(status_code=404, detail="No available events")
+    return events
 
 
 @router.get("/{event_id}", response_model=EventResponse)
@@ -24,6 +34,9 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=EventResponse)
 def create_event(event: EventCreate, db: Session = Depends(get_db)):
+    if event.event_date < date.today():
+        raise HTTPException(status_code=400, detail="Please  select  correct date")
+
     require_admin_by_user_id(user_id=event.user_id, db=db)
 
     existing = (
@@ -45,8 +58,10 @@ def create_event(event: EventCreate, db: Session = Depends(get_db)):
     return new_event
 
 
-@router.delete("/{event_id}", dependencies=[Depends(verify_admin)])
-def delete_event(event_id: int, db: Session = Depends(get_db)):
+@router.delete("/{event_id}")
+def delete_event(event_id: int, user_id: int, db: Session = Depends(get_db)):
+    require_admin_by_user_id(user_id=user_id, db=db)
+
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -59,8 +74,10 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
     return {"message": "Event deleted"}
 
 
-@router.get("/{event_id}/stats", response_model=EventStatsResponse, dependencies=[Depends(verify_admin)])
-def event_stats(event_id: int, db: Session = Depends(get_db)):
+@router.get("/{event_id}/stats", response_model=EventStatsResponse)
+def event_stats(event_id: int, user_id: int, db: Session = Depends(get_db)):
+    require_admin_by_user_id(user_id=user_id, db=db)
+
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")

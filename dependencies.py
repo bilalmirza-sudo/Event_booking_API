@@ -1,7 +1,6 @@
-from fastapi import Depends, Header, HTTPException
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from database import get_db
 from models import User
 
 
@@ -20,10 +19,3 @@ def require_admin_by_user_id(user_id: int, db: Session) -> User:
             detail="You don't have permission to perform this action",
         )
     return user
-
-
-def verify_admin(
-    user_id: int = Header(..., alias="X-User-Id"),
-    db: Session = Depends(get_db),
-):
-    require_admin_by_user_id(user_id=user_id, db=db)

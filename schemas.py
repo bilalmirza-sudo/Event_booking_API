@@ -1,11 +1,11 @@
 from datetime import date
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class EventCreate(BaseModel):
     user_id: int
     name: str
-    available_tickets: int
+    available_tickets: int = Field(gt=0)
     event_date: date
 
 
@@ -36,6 +36,7 @@ class BookingResponse(BaseModel):
 class EventStatsResponse(BaseModel):
     event_id: int
     booked_tickets: int
+
 
 class UserResponse(BaseModel):
     id: int
